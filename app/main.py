@@ -1,9 +1,11 @@
-import json
-import string
-import time
-import threading
-import wave
 from utils.speech import SpeechRecognize
+import os
+from dotenv import load_dotenv
 
-Recognizer = SpeechRecognize("YourSubscriptionKey", "YourServiceRegion", "YourAudioFile")
+load_dotenv()
+
+SUBSCRIPTION_KEY = os.getenv('SUBSCRIPTION_KEY')
+SERVICE_REGION = os.getenv('SERVICE_REGION')
+
+Recognizer = SpeechRecognize(SUBSCRIPTION_KEY, SERVICE_REGION, "YourAudioFile")
 
