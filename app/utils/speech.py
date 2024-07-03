@@ -1,3 +1,5 @@
+import difflib
+import json
 try:
     import azure.cognitiveservices.speech as speechsdk
 except ImportError:
@@ -17,30 +19,37 @@ class SpeechRecognize():
         self.service_region = service_region
         self.file = file
         
-    def speech_recognize_once_from_file(self):
-        """performs one-shot speech recognition with input from an audio file"""
-        # <SpeechRecognitionWithFile>
-        speech_config = speechsdk.SpeechConfig(subscription=self.speech_key, region=self.service_region)
-        audio_config = speechsdk.audio.AudioConfig(filename=self.weatherfilename)
-        # Creates a speech recognizer using a file as audio input, also specify the speech language
-        speech_recognizer = speechsdk.SpeechRecognizer(
-            speech_config=speech_config, language="de-DE", audio_config=audio_config)
+    def pronunciation_assessment_continuous_from_file():
+        """Performs continuous pronunciation assessment asynchronously with input from an audio file.
+            See more information at https://aka.ms/csspeech/pa"""
 
-        # Starts speech recognition, and returns after a single utterance is recognized. The end of a
-        # single utterance is determined by listening for silence at the end or until a maximum of 15
-        # seconds of audio is processed. It returns the recognition text as result.
-        # Note: Since recognize_once() returns only a single utterance, it is suitable only for single
-        # shot recognition like command or query.
-        # For long-running multi-utterance recognition, use start_continuous_recognition() instead.
-        result = speech_recognizer.recognize_once()
+        # Creates an instance of a speech config with specified subscription key and service region.
+        # Replace with your own subscription key and service region (e.g., "westus").
+        speech_config = speechsdk.SpeechConfig(subscription="YourSubscriptionKey", region="YourServiceRegion")
+        # provide a WAV file as an example. Replace it with your own.
+        audio_config = speechsdk.audio.AudioConfig(filename="Exemplo_1.wav")
 
-        # Check the result
-        if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            print("Recognized: {}".format(result.text))
-        elif result.reason == speechsdk.ResultReason.NoMatch:
-            print("No speech could be recognized: {}".format(result.no_match_details))
-        elif result.reason == speechsdk.ResultReason.Canceled:
-            cancellation_details = result.cancellation_details
-            print("Speech Recognition canceled: {}".format(cancellation_details.reason))
-            if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                print("Error details: {}".format(cancellation_details.error_details))
+        reference_text = "Today was a beautiful day. We had a great time taking a long walk outside in the morning. The countryside was in full bloom, yet the air was crisp and cold. Towards the end of the day, clouds came in, forecasting much needed rain."
+        # create pronunciation assessment config, set grading system, granularity and if enable miscue based on your requirement.
+        enable_miscue = True
+        enable_prosody_assessment = True
+        pronunciation_config = speechsdk.PronunciationAssessmentConfig(
+            reference_text=reference_text,
+            grading_system=speechsdk.PronunciationAssessmentGradingSystem.HundredMark,
+            granularity=speechsdk.PronunciationAssessmentGranularity.Phoneme,
+            enable_miscue=enable_miscue)
+        if enable_prosody_assessment:
+            pronunciation_config.enable_prosody_assessment()
+
+        # Creates a speech recognizer using a file as audio input.
+        language = 'en-US'
+        speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, language=language, audio_config=audio_config)
+        # apply pronunciation assessment config to speech recognizer
+        pronunciation_config.apply_to(speech_recognizer)
+
+        done = False
+        recognized_words = []
+        fluency_scores = []
+        prosody_scores = []
+        durations = []
+
