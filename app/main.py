@@ -5,8 +5,6 @@ import azure.cognitiveservices.speech as speechsdk
 
 load_dotenv()
 
-SUBSCRIPTION_KEY = os.getenv('SUBSCRIPTION_KEY')
-SERVICE_REGION = os.getenv('SERVICE_REGION')
 
 audio_file = "audio/audio.wav"
 
@@ -20,8 +18,8 @@ def main():
     # Substitua YOUR_SUBSCRIPTION_KEY e YOUR_SERVICE_REGION com seus valores
 
     # Cria uma configuração de fala
-    speech_config = speechsdk.SpeechConfig(subscription=SUBSCRIPTION_KEY, region=SERVICE_REGION)
-
+    speech_config = speechsdk.SpeechConfig(subscription=os.getenv('SUBSCRIPTION_KEY'), region=os.getenv('SERVICE_REGION'))
+    speech_config.set_property(speechsdk.PropertyId.Speech_LogFilename, "LogfilePathAndName")
     # Configura o áudio para usar o microfone padrão
     audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
 
