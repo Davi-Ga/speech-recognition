@@ -6,7 +6,7 @@ import azure.cognitiveservices.speech as speechsdk
 
 
 class PronunciationAssessment:
-    def __init__(self, subscription_key, service_region, file, text):
+    def __init__(self, subscription_key, service_region, file = None, text = None):
         self.subscription_key = subscription_key
         self.service_region = service_region
         self.file = file or "audio/whatstheweatherlike.wav"
@@ -55,15 +55,6 @@ class PronunciationAssessment:
     def recognized(self, evt):
         print("Pronunciation assessment for: {}".format(evt.result.text))
         pronunciation_result = speechsdk.PronunciationAssessmentResult(evt.result)
-        print(
-            "    Accuracy score: {}, pronunciation score: {}, completeness score : {}, fluency score: {}, prosody score: {}".format(
-                pronunciation_result.accuracy_score,
-                pronunciation_result.pronunciation_score,
-                pronunciation_result.completeness_score,
-                pronunciation_result.fluency_score,
-                pronunciation_result.prosody_score,
-            )
-        )
         self.recognized_words += pronunciation_result.words
         self.fluency_scores.append(pronunciation_result.fluency_score)
         self.prosody_scores.append(pronunciation_result.prosody_score)
@@ -96,6 +87,16 @@ class PronunciationAssessment:
             time.sleep(0.5)
         self.speech_recognizer.stop_continuous_recognition()
         self.process_results()
+        
+    def define_score(self, score):
+        if score >= 85:
+            return "Excelent"
+        elif score >= 70:
+            return "Good"
+        elif score >= 50:
+            return "Regular"
+        else:
+            return "Bad"
 
     def process_results(self):
         reference_words = [
@@ -165,18 +166,11 @@ class PronunciationAssessment:
         )
 
         print(
-            "    Paragraph pronunciation score: {}, accuracy score: {}, completeness score: {}, fluency score: {}, prosody score: {}".format(
+            " \n =================================================\nParagraph pronunciation score: {} \nYou score is: {}"
+            .format(
                 pron_score,
-                accuracy_score,
-                completeness_score,
-                fluency_score,
-                prosody_score,
+                self.define_score(pron_score)
             )
         )
 
-        for idx, word in enumerate(final_words):
-            print(
-                "    {}: word: {}\taccuracy score: {}\terror type: {};".format(
-                    idx + 1, word.word, word.accuracy_score, word.error_type
-                )
-            )
+   
